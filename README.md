@@ -11,9 +11,9 @@
 
  
 # ToDo List
-- Arreglar el metodo de caer proyectiles para que salgan en posiciones random *10 julio*
-- hay que restringir el intervalo de las x , porque siempre empiezan siempre en y=0. *10 julio*
-- Lograr que el jugador se mueva --hoy 9 julio ARREGLADO
+- ~~Arreglar el metodo de caer proyectiles para que salgan en posiciones random *10 julio* ARREGLADO~~
+- ~~hay que restringir el intervalo de las x , porque siempre empiezan siempre en y=0. *10 julio* ARREGLADO~~
+- ~~Lograr que el jugador se mueva --hoy 9 julio ARREGLADO~~
 - ~~lograr que los proyectiles se lancen. --hoy 9 julio ARREGLADO~~
 - hacer que el proyecto corra con el comando dado
 - aumentar el numero de proyectiles. *10 julio*
@@ -24,7 +24,7 @@
 - el programa debe instalar la biblioteca ncurses automaticamente y offline ANTES de correr el programa, debemos tener un script para automatizar eso 
 - ver la idea de jugar por niveles
 - guardar a los enemigos en una cola, para que sean una cantidad liminada de enemigos
-- definir el rango de colsiion entre proyectil y enemigo, la x del proyectil debe estar en el rango de la x *10 julio*
+- definir el rango de colision entre proyectil y enemigo, la x del proyectil debe estar en el rango de la x *10 julio*
 - agregar vidas, para no perder a la primera 
 - CONDICIONES PARA PERDER UNA VIDA:
     - la nave colisiona con el enemigo, en ese caso, se elimina tambien el enemigo
