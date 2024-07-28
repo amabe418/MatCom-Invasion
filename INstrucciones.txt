@@ -1,0 +1,12 @@
+Antes de ejecutar esto
+escribir en la consola
+
+chmod +x compileAndRun.sh
+
+para cambiar los permisos del archivo compileAndRun.sh y hacerlo ejecutable
+
+y despues ejecutar 
+
+./myprogram
+
+que es el ejecutable del juego ya compilado en C
