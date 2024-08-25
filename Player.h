@@ -3,9 +3,7 @@
 
 #define PLAYER_SYMBOL '^'  // Símbolo que representa al jugador
 
-// Función para mover al jugador
-void move_player(int ch) ;
-
+void *move_player(void *arg);
 
 #endif
 

@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "pthread.h": "c",
+        "ncurses.h": "c",
+        "enemy.h": "c"
+    }
+}

@@ -1,7 +1,7 @@
 #ifndef PROJECTILE_H
 #define PROJECTILE_H
 
-#define PROJECTILE_SYMBOL '|' // Símbolo que representa a los proyectiles
+#define PROJECTILE_SYMBOL '*' // Símbolo que representa a los proyectiles
 #define MAX_PROJECTILES 50 // Número máximo de proyectiles
 
 // Estructura que representa un proyectil
@@ -10,11 +10,10 @@ typedef struct {
     int active; // Estado del proyectil (activo o no activo)
 } Projectile;
 
-// Función para disparar un proyectil
-void shoot_projectile();
 
 // Función para mover los proyectiles
 void move_projectiles();
-
+void *shoot_projectile(void *arg);
+void detect_collisions();
 
 #endif

@@ -9,19 +9,22 @@
 
 
 // Función para mover al jugador
-void move_player(int ch) {
-    switch (ch) {
-        case KEY_UP:
-            if (player_y > 0) player_y--; // Mueve al jugador hacia arriba si no está en el borde superior
-            break;
-        case KEY_DOWN:
-            if (player_y < LINES - 1) player_y++; // Mueve al jugador hacia abajo si no está en el borde inferior
-            break;
-        case KEY_LEFT:
-            if (player_x > 0) player_x--; // Mueve al jugador hacia la izquierda si no está en el borde izquierdo
-            break;
-        case KEY_RIGHT:
-            if (player_x < COLS - 1) player_x++; // Mueve al jugador hacia la derecha si no está en el borde derecho
-            break;
+void *move_player(void *arg)
+{
+    pthread_mutex_lock(&game_mutex);
+    int direction = *((int *)arg);
+    if (direction == KEY_LEFT && player_x > 0)
+    {
+        player_x--;
     }
+    else if (direction == KEY_RIGHT && player_x < COLS - 1)
+    {
+        player_x++;
+    }
+    // Mover el cursor a la posición del proyectil y dibujarlo
+    move(player_y, player_x);
+    addch(PLAYER_SYMBOL); // Dibuja el jugador
+    pthread_mutex_unlock(&game_mutex);
+    pthread_exit(NULL);
 }
+

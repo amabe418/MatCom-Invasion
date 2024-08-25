@@ -18,7 +18,7 @@
 - hacer que el proyecto corra con el comando dado
 - aumentar el numero de proyectiles. *10 julio*
 - cambiar la estetica de la consola
-- aumetar la velocidad del proyectil
+- ~~aumetar la velocidad del proyectil*~~
 - aumentar la velocidad de la nave
 - evitar que se dibuje una pantalla nueva cada vez que haya que actualizarla, no queremos el borra-dibuja que hay todo el tiempo.
 - el programa debe instalar la biblioteca ncurses automaticamente y offline ANTES de correr el programa, debemos tener un script para automatizar eso 

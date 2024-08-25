@@ -1,39 +1,55 @@
-#include <ncurses.h>   // Biblioteca para manejar la interfaz de consola
-#include <pthread.h>   // Biblioteca para manejar hilos
-#include <stdio.h>     // Biblioteca estándar de entrada/salida
-#include <stdlib.h>    // Biblioteca estándar de funciones generales
-#include <unistd.h>    // Biblioteca para funciones POSIX como usleep
-#include <time.h>      // Biblioteca para funciones de tiempo, como srand y time
+#include <ncurses.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
 #include "ScreenDesign.h"
 #include "Enemy.h"
 #include "Projectile.h"
 #include "Player.h"
 #include "global.h"
+#include <locale.h>
+#include "ScreenShows.h"
 
 
-// Función para actualizar la pantalla
+
+WINDOW *screen_buffer;
+
+void init_screen_buffer() {
+    screen_buffer = newwin(GAME_HEIGHT, GAME_WIDTH, GAME_START_Y, GAME_START_X);
+}
+
 void update_screen() {
-    clear(); // Limpia la pantalla
+    werase(screen_buffer); // Limpia el búfer
+
+    mvwprintw(screen_buffer, 0, 0, "SCORE: %d", score);
+    mvwprintw(screen_buffer, 0, 35, "HIGHEST SCORE: %d", high_score);
+    mvwprintw(screen_buffer, 0, 70, "LIVES: %d", 3);
     // Dibuja al jugador
-    //mvaddch(player_y, player_x, PLAYER_SYMBOL);
-    mvprintw(player_y, player_x, "%c", PLAYER_SYMBOL);
+    mvwprintw(screen_buffer, player_y, player_x, "%c", PLAYER_SYMBOL);
 
     // Dibuja los enemigos
     for (int i = 0; i < MAX_ENEMIES; i++) {
-        if (enemies[i].active) { // Si el enemigo está activo
-            mvprintw(enemies[i].y, enemies[i].x,"%c", ENEMY_SYMBOL); // Dibuja al enemigo
+        if (enemies[i].active) {
+           mvwprintw(screen_buffer, enemies[i].y, enemies[i].x, "%c", ENEMY_SYMBOL);
         }
     }
 
     // Dibuja los proyectiles
     for (int i = 0; i < MAX_PROJECTILES; i++) {
-        if (projectiles[i].active) { // Si el proyectil está activo
-            mvprintw(projectiles[i].y, projectiles[i].x, "%c",PROJECTILE_SYMBOL); // Dibuja el proyectil
+        if (projectiles[i].active) {
+            mvwprintw(screen_buffer, projectiles[i].y, projectiles[i].x, "%c", PROJECTILE_SYMBOL);
         }
     }
 
-    // Dibuja la puntuaciónf
-    mvprintw(0, 0, "Score: %d", score); // Muestra la puntuación en la esquina superior izquierda
+    // Dibuja la puntuación
 
-    refresh(); // Actualiza la pantalla
+
+    // Refresca el búfer a la pantalla real
+    wnoutrefresh(screen_buffer);
+    doupdate();
 }
+
+
+

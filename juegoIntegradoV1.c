@@ -1,108 +1,153 @@
-#include <ncurses.h>   // Biblioteca para manejar la interfaz de consola
+#include <ncurses.h>
 #include "global.h"
-#include <pthread.h>   // Biblioteca para manejar hilos
-#include <stdio.h>     // Biblioteca estándar de entrada/salida
-#include <stdlib.h>    // Biblioteca estándar de funciones generales
-#include <unistd.h>    // Biblioteca para funciones POSIX como usleep
-#include <time.h>      // Biblioteca para funciones de tiempo, como srand y time
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
 #include "Enemy.h"
 #include "Projectile.h"
 #include "Player.h"
 #include "ScreenDesign.h"
+#include "ScreenShows.h"
+#include "global.h"
+#include "Records.h"
+
+// // Prototipos de funciones
+// void init();
+// void detect_collisions();
+// void *game_loop(void *arg);
+// void handle_input();
+// void init_screen_buffer(); // Prototipo de la función para inicializar el búfer doble
 
 
-// Función para inicializar ncurses y la pantalla
-void init() {
-    srand(time(NULL));    // Inicializa la semilla para números aleatorios
-    initscr();            // Inicializa la pantalla
-    cbreak();             // Desactiva el buffer de línea
-    noecho();             // No muestra los caracteres ingresados
-    keypad(stdscr, TRUE); // Habilita el uso de teclas especiales
-    curs_set(FALSE);      // Oculta el cursor
-    player_x = COLS / 2;  // Inicializa la posición del jugador en el centro horizontal
-    player_y = LINES - 2; // Inicializa la posición del jugador en la penúltima línea
-    for (int i = 0; i < MAX_PROJECTILES; i++) {
-        projectiles[i].active = 0; // Inicializa todos los proyectiles como no activos
+void init()
+{
+
+    srand(time(NULL));
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    curs_set(FALSE);
+    nodelay(stdscr, TRUE);
+    high_score = load_high_score(); // Cargar el récord guardo
+    player_x = COLS / 2;
+    player_y = LINES - 2;
+    score = 0;
+    high_score = 0;
+    game_over = 0;
+    for (int i = 0; i < MAX_PROJECTILES; i++)
+    {
+        projectiles[i].active = 0;
     }
+    for (int i = 0; i < MAX_ENEMIES; i++)
+    {
+        enemies[i].active = 0;
+    }
+
+    init_screen_buffer(); // Inicializa el búfer doble
 }
 
 
-// Función para detectar colisiones entre proyectiles y enemigos
-void detect_collisions() {
-    for (int i = 0; i < MAX_PROJECTILES; i++) {
-        if (projectiles[i].active) { // Si el proyectil está activo
-            for (int j = 0; j < MAX_ENEMIES; j++) {
-                if (enemies[j].active && projectiles[i].x == enemies[j].x && projectiles[i].y == enemies[j].y) {
-                    // Si hay una colisión entre un proyectil y un enemigo activo
-                    projectiles[i].active = 0; // Desactiva el proyectil
-                    //enemies[j].active = 0; // Desactiva el enemigo
-                    score++; // Incrementa la puntuación
-                }
-            }
-        }
-    }
-}
-
-
-// Función para escuchar eventos de teclado
-void *listen_events(void *arg) {
+void handle_input()
+{
     int ch;
-    while ((ch = getch()) != 'q') { // Escucha teclas hasta que se presiona 'q'
-        switch (ch) {
-            case KEY_UP:
-            case KEY_DOWN:
-            case KEY_LEFT:
-            case KEY_RIGHT:
-                move_player(ch); // Mueve al jugador
-                break;
-            case ' ':
-                shoot_projectile(); // Dispara un proyectil
-                break;
+    while (1)
+    {
+        pthread_mutex_lock(&input_mutex);
+        ch = getch();
+        pthread_t thread;
+        switch (ch)
+        {
+        case KEY_LEFT:
+        case KEY_RIGHT:
+        {
+            int direction = ch;
+            pthread_create(&thread, NULL, move_player, &direction);
+            pthread_detach(thread);
+            break;
         }
+        case ' ':
+        {
+            pthread_create(&thread, NULL, shoot_projectile, NULL);
+            pthread_detach(thread);
+            break;
+        }
+        case 'q':
+            pthread_mutex_unlock(&input_mutex);
+            pthread_mutex_lock(&game_mutex);
+            pause_screen();
+                pthread_mutex_unlock(&game_mutex);
+            break;
+        }
+        pthread_mutex_unlock(&input_mutex);
     }
-    pthread_exit(NULL); // Termina el hilo
 }
 
-// Función para manejar la lógica del juego
-void *game_logic(void *arg) {
-    while (1) {
-        spawn_enemy(); // Aparece un nuevo enemigo
-        move_enemies(); // Mueve los enemigos
-        move_projectiles(); // Mueve los proyectiles
-        detect_collisions(); // Detecta colisiones
-        update_screen(); // Actualiza la pantalla
-        usleep(500000); // Pausa de medio segundo
+void *game_loop(void *arg)
+{
+    int enemy_move_counter = 0;
+    const int enemy_move_threshold = 10; // Ajusta este valor para controlar la velocidad de los enemigos
+    int enemy_spawn_counter = 0;
+    const int enemy_spawn_threshold = 20; // Ajusta este valor para controlar la velocidad de los enemigos
+    while (1)
+    {
+        usleep(10000); // Controla la velocidad del juego
+
+        move_projectiles(); // Llamada a función externa
+
+        if (enemy_move_counter >= enemy_move_threshold)
+        {
+            move_enemies(); // Mueve los enemigos solo cuando el contador alcanza el umbral
+            enemy_move_counter = 0;
+        }
+        else
+        {
+            enemy_move_counter++;
+        }
+
+        detect_collisions();
+        if (enemy_spawn_counter >= enemy_spawn_threshold)
+        {
+
+            spawn_enemy(); // Llamada a función externa
+            enemy_spawn_counter = 0;
+        }
+        else
+        {
+            enemy_spawn_counter++;
+        }
+
+        pthread_mutex_lock(&game_mutex);
+        update_screen();
+        pthread_mutex_unlock(&game_mutex);
     }
-    pthread_exit(NULL); // Termina el hilo
+    return NULL;
 }
 
-// Función principal
-int main() {
-    pthread_t threads[2]; // Arreglo de dos hilos
-    int rc;
+int main()
+{
+    pthread_t game_thread;
+    high_score = load_high_score(); // Cargar el récord guardo
+    start_screen();
+    init();
 
-    srand(time(NULL));  // Inicializa la semilla para números aleatorios
-    init();  // Inicializa ncurses
-    initialize_enemies();  // Inicializa enemigos
+    // Crear un hilo para el bucle del juego
+    pthread_create(&game_thread, NULL, game_loop, NULL);
 
-    // Crea un hilo para escuchar eventos
-    rc = pthread_create(&threads[0], NULL, listen_events, NULL);
-    if (rc) {
-        printf("Error: unable to create thread, %d\n", rc);
-        exit(-1);
+    // Bucle principal para manejar la entrada del usuario
+    while (!game_over)
+    {
+        handle_input();
     }
 
-    // Crea un hilo para la lógica del juego
-    rc = pthread_create(&threads[1], NULL, game_logic, NULL);
-    if (rc) {
-        printf("Error: unable to create thread, %d\n", rc);
-        exit(-1);
-    }
+    // Esperar a que el hilo del juego termine (nunca debería suceder en este caso)
+    pthread_join(game_thread, NULL);
 
-    // Espera a que los hilos terminen
-    pthread_join(threads[0], NULL);
-    pthread_join(threads[1], NULL);
+    end_screen();
 
-    cleanup();  // Finaliza ncurses
+    endwin();
+
     return 0;
 }
