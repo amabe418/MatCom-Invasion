@@ -6,24 +6,34 @@
 #include <time.h>      // Biblioteca para funciones de tiempo, como srand y time
 #include "Player.h"
 #include "global.h"
+#include "ScreenDesign.h"
 
 
 // Función para mover al jugador
-void *move_player(void *arg)
-{
+void *move_player(void *arg) {
     pthread_mutex_lock(&game_mutex);
+
     int direction = *((int *)arg);
-    if (direction == KEY_LEFT && player_x > 0)
-    {
-        player_x--;
+
+    // Borrar la figura anterior del jugador
+    for (int i = 0; i < PLAYER_HEIGHT; i++) {
+        mvwprintw(screen_buffer, player_y + i, player_x + player_running, "        ");  // Borra la línea anterior
     }
-    else if (direction == KEY_RIGHT && player_x < COLS - 1)
-    {
-        player_x++;
+
+    // Actualiza la posición del jugador
+    if (direction == KEY_LEFT && player_x + player_running > START_WINDOW) {
+        player_running--;
+    } else if (direction == KEY_RIGHT && player_x + player_running < HORIZONTAL_END_WINDOW) {
+        player_running++;
     }
-    // Mover el cursor a la posición del proyectil y dibujarlo
-    move(player_y, player_x);
-    addch(PLAYER_SYMBOL); // Dibuja el jugador
+
+    // Dibuja la nueva figura del jugador en la nueva posición
+    wattron(screen_buffer, COLOR_PAIR(2) | A_BOLD);  // Activa el color y negrita
+    for (int i = 0; i < PLAYER_HEIGHT; i++) {
+        mvwprintw(screen_buffer, player_y + i, player_x + player_running+PLAYER_WIDTH/2, "%s", PLAYER_SYMBOL[i]);
+    }
+    wattroff(screen_buffer, COLOR_PAIR(2) | A_BOLD);  // Desactiva el color y negrita
+
     pthread_mutex_unlock(&game_mutex);
     pthread_exit(NULL);
 }

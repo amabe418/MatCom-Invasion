@@ -6,5 +6,5 @@ extern WINDOW *screen_buffer;
 void init_screen_buffer();
 // Función para actualizar la pantalla
 void update_screen() ;
-
+void init_colors();
 #endif
